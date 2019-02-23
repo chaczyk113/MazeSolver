@@ -190,8 +190,8 @@ var labController = (function () {
 // User Interface controller
 var UIController = (function () {
     var matrixPlace;
-
-    var btnStyles = ['wallState', 'pathState', 'startState', 'stopState', 'visitedState', 'wayState', 'actualState'];
+    var dirButtons = document.querySelectorAll('#solve-dir button');
+    var btnStyles = ['wallState', 'pathState', 'startState', 'stopState', 'visitedState', 'wayState', 'actualState', 'semiWayState'];
 
     return {
         init: function () {
@@ -201,6 +201,8 @@ var UIController = (function () {
         matrixCreate: function (width, height, btnSize) {
             matrixPlace = document.getElementById('matrix-place');
             this.matrixRemove(matrixPlace);
+            matrixPlace.style.width = width * btnSize + 'px';
+            matrixPlace.style.height = height * btnSize + 'px';
             for (var y = 0; y < height; y++) {
                 for (var x = 0; x < width; x++) {
                     var btn = document.createElement("BUTTON");
@@ -244,42 +246,38 @@ var UIController = (function () {
 
         },
 
-        displayArrow: function (x, y, dir, opacity) {
-            var arrow, color
-            if (dir !== '') {
-                arrow = '<i class="fas fa-angle-' + dir + '"></i>' //template string
-            }
-            else {
-                arrow = dir;
-            }
-            color = 'rgba(51, 51, 51, ' + opacity + ')';
-
-            document.getElementById('btn-' + x + '-' + y).innerHTML = arrow;
-            document.getElementById('btn-' + x + '-' + y).style.color = color;
-        },
-
         setPlayButton: function (state) {
             var runButton = document.getElementById('run-algorithm');
             if (state === 'play') {
                 runButton.innerHTML = '<i class="far fa-play-circle"></i>Run algorithm';
                 runButton.classList.remove('button-pressed');
-            } else if (state === 'pause')  {
+            } else if (state === 'pause') {
                 runButton.innerHTML = '<i class="far fa-pause-circle"></i>Pause';
                 runButton.classList.remove('button-pressed');
             }
             else if (state === 'paused') {
                 runButton.classList.add('button-pressed');
             }
+        },
+
+        setDirButton: function (pressedBtn) {
+            console.log(pressedBtn);
+            console.log(dirButtons);
+            dirButtons = Array.from(dirButtons);
+            for (button of dirButtons){
+                button.classList.remove('button-pressed');
+            }
+            pressedBtn.classList.add('button-pressed');
         }
     }
 
 })();
 
-
 var solverController = (function (labCtrl, UICtrl) {
-    var graph, solveLock, stop, search, arrowsArray;;
+    var graph, solveLock, stop, search;
 
     solveLock = false;
+
     // graph's node constructor
     var NodeCreate = function (lX, lY, pX, pY) {
         this.location = {
@@ -290,7 +288,8 @@ var solverController = (function (labCtrl, UICtrl) {
                 x: pX,
                 y: pY
             },
-            this.vector = undefined,
+            this.relators = [];
+        this.vector = undefined,
             this.children = [],
             this.lastChild = 0 //when any child visited yet
     };
@@ -303,14 +302,14 @@ var solverController = (function (labCtrl, UICtrl) {
         else this.vector = 'up';
     };
 
-    NodeCreate.prototype.fillChildren = function (matrix, solveDir) {
+    NodeCreate.prototype.fillChildren = function (matrix, solveDir, stop) {
         var lX, lY, Xmax, Ymax, children;
         lX = this.location.x;
         lY = this.location.y;
         children = this.children;
         Ymax = matrix.length;
         Xmax = matrix[0].length;
-        // THIS SHOULD DEPENDS ON VECTOR BUT NOT YET :))
+
         // checks if next cell is inside the matrix, then checks if any child avaliable if it's not a wall (0) or previously visited (4)
         var lookRight = function () {
             if ((lX + 1 < Xmax) && (matrix[lY][lX + 1] > 0 && matrix[lY][lX + 1] < 4)) {
@@ -358,8 +357,115 @@ var solverController = (function (labCtrl, UICtrl) {
             case 'lh-down': lookRight(); lookDown(); lookLeft(); lookUp(); break;
             case 'lh-left': lookDown(); lookLeft(); lookUp(); lookRight(); break;
             case 'lh-up': lookLeft(); lookUp(); lookRight(); lookDown(); break;
+            case 'A*': lookRight(); lookDown(); lookLeft(); lookUp(); break;
+        }
+        if (solveDir === 'A*') {
+            children = children.sort(function (a, b) {
+                return (Math.abs(a[0] - stop.x) + Math.abs(a[1] - stop.y)) - (Math.abs(b[0] - stop.x) + Math.abs(b[1] - stop.y))
+            });
         }
 
+
+    };
+    NodeCreate.prototype.betterFillChildren = function (matrix, solveDir, stop) {
+        var lX, lY, Xmax, Ymax, children;
+        lX = this.location.x;
+        lY = this.location.y;
+        children = this.children;
+        Ymax = matrix.length;
+        Xmax = matrix[0].length;
+        // console.log('node '+lX+' '+lY);
+        // checks if next cell is inside the matrix, then checks if any child avaliable if it's not a wall (0) or previously visited (4)
+        var lookRight = function () {
+            if ((lX + 1 < Xmax) && (matrix[lY][lX + 1] > 0 && matrix[lY][lX + 1] < 4)) {
+                var antecedents = [];
+                children.push(lookDeeper(lX + 1, lY, lX, lY, antecedents));
+                // matrix[lY][lX + 1] = 4;
+            }
+        }
+        var lookDown = function () {
+            if ((lY + 1 < Ymax) && (matrix[lY + 1][lX] > 0 && matrix[lY + 1][lX] < 4)) {
+                var antecedents = [];
+                children.push(lookDeeper(lX, lY + 1, lX, lY, antecedents));
+                // matrix[lY + 1][lX] = 4;
+            }
+        }
+        var lookLeft = function () {
+            if ((lX - 1 >= 0) && (matrix[lY][lX - 1] > 0 && matrix[lY][lX - 1] < 4)) {
+                var antecedents = [];
+                children.push(lookDeeper(lX - 1, lY, lX, lY, antecedents));
+                // matrix[lY][lX - 1] = 4;
+            }
+        }
+        var lookUp = function () {
+            if ((lY - 1 >= 0) && (matrix[lY - 1][lX] > 0 && matrix[lY - 1][lX] < 4)) {
+                var antecedents = [];
+                children.push(lookDeeper(lX, lY - 1, lX, lY, antecedents));
+                // matrix[lY - 1][lX] = 4;
+            }
+        }
+
+        // we can change the order of children searching
+
+        if (solveDir === 'rightHand') {
+            solveDir = 'rh-' + this.vector;
+        } else if (solveDir === 'leftHand') {
+            solveDir = 'lh-' + this.vector;
+        }
+        // quite messy below - I know :(
+        switch (solveDir) {
+            case 'right': lookRight(); lookDown(); lookLeft(); lookUp(); break;
+            case 'down': lookDown(); lookLeft(); lookUp(); lookRight(); break;
+            case 'left': lookLeft(); lookUp(); lookRight(); lookDown(); break;
+            case 'up': lookUp(); lookRight(); lookDown(); lookLeft(); break;
+            case 'rh-right': lookDown(); lookRight(); lookUp(); lookLeft(); break;
+            case 'rh-down': lookLeft(); lookDown(); lookRight(); lookUp(); break;
+            case 'rh-left': lookUp(); lookLeft(); lookDown(); lookRight(); break;
+            case 'rh-up': lookRight(); lookUp(); lookLeft(); lookDown(); break;
+            case 'lh-right': lookUp(); lookDown(); lookRight(); lookLeft(); break;
+            case 'lh-down': lookRight(); lookDown(); lookLeft(); lookUp(); break;
+            case 'lh-left': lookDown(); lookLeft(); lookUp(); lookRight(); break;
+            case 'lh-up': lookLeft(); lookUp(); lookRight(); lookDown(); break;
+            case 'A*': lookRight(); lookDown(); lookLeft(); lookUp(); break;
+        }
+        if (solveDir === 'A*') {
+            children = children.sort(function (a, b) {
+                return (Math.abs(a[0] - stop.x) + Math.abs(a[1] - stop.y)) - (Math.abs(b[0] - stop.x) + Math.abs(b[1] - stop.y))
+            });
+        }
+        // console.log(children);
+        function lookDeeper(oX, oY, pX, pY, antecedents) {
+            var counter, onlyX, onlyY;
+            counter = 0
+            onlyX = oX;
+            onlyY = oY;
+            if ((oX + 1 < Xmax) && matrix[oY][oX + 1] > 0 && (oX + 1 !== pX)) {
+                counter++;
+                onlyX = oX + 1;
+            }
+            if ((oY + 1 < Ymax) && (matrix[oY + 1][oX] > 0) && (oY + 1 !== pY)) {
+                counter++;
+                onlyY = oY + 1;
+            }
+            if ((oX - 1 >= 0) && (matrix[oY][oX - 1] > 0) && (oX - 1 !== pX)) {
+                counter++;
+                onlyX = oX - 1;
+            }
+            if ((oY - 1 >= 0) && (matrix[oY - 1][oX] > 0) && (oY - 1 !== pY)) {
+                counter++;
+                onlyY = oY - 1;
+            }
+
+            if (counter != 1) return [oX, oY, antecedents];
+            else if (onlyX === stop.x && onlyY === stop.y) {
+                antecedents.push([oX, oY]);
+                return [onlyX, onlyY, antecedents];
+            }
+            else {
+                antecedents.push([oX, oY]);
+                return lookDeeper(onlyX, onlyY, oX, oY, antecedents);
+            }
+        }
     };
 
     NodeCreate.prototype.returnChild = function () {
@@ -367,6 +473,7 @@ var solverController = (function (labCtrl, UICtrl) {
             var x, y
             x = this.children[this.lastChild][0]
             y = this.children[this.lastChild][1]
+            this.relators = this.children[this.lastChild][2];
             this.lastChild++;
             return {
                 x: x,
@@ -379,7 +486,7 @@ var solverController = (function (labCtrl, UICtrl) {
     }
 
     // empty graph's constructor to store nodes
-    var GraphCreate = function (startX, startY, stopX, stopY) {
+    var GraphCreate = function (startX, startY, stopX, stopY, solveDir, solveMode) {
         this.start = {
             x: startX,
             y: startY
@@ -388,18 +495,27 @@ var solverController = (function (labCtrl, UICtrl) {
             x: stopX,
             y: stopY
         }
+        this.solveDir = solveDir;
+        this.solveMode = solveMode;
         this.matrix = [],
             this.node = [],
-            this.makeNode = function (nX, nY, pX, pY, solveDir) {
+            this.makeNode = function (nX, nY, pX, pY) {
                 // node position in labirynth's matrix and it's parent's position
 
                 this.node['n-' + nX + '-' + nY] = new NodeCreate(nX, nY, pX, pY);
                 this.node['n-' + nX + '-' + nY].vectorCalc();
-                this.node['n-' + nX + '-' + nY].fillChildren(this.matrix, solveDir);
+
                 if (this.matrix[nY][nX] === 1) {
                     UICtrl.btnState(nX, nY, 4);
                 }
+
                 this.matrix[nY][nX] = 4; // 4 means visited
+
+                if (this.solveMode === 'optimalised') {
+                    this.node['n-' + nX + '-' + nY].betterFillChildren(this.matrix, this.solveDir, this.stop);
+                } else {
+                    this.node['n-' + nX + '-' + nY].fillChildren(this.matrix, this.solveDir, this.stop);
+                }
 
                 return this.node['n-' + nX + '-' + nY];
             },
@@ -408,55 +524,35 @@ var solverController = (function (labCtrl, UICtrl) {
             }
     };
 
-    var ArrowCreate = function (x, y, dir) {
-        this.x = x,
-            this.y = y,
-            this.dir = dir
-    }
-
-    // just a fancy decoration adds arrow depenting od direction where we're movig
-    function findArrow(newNode, previousNode) {
-        if (previousNode.location.x > newNode.location.x) return 'left';
-        else if (previousNode.location.x < newNode.location.x) return 'right';
-        else if (previousNode.location.y > newNode.location.y) return 'up';
-        else if (previousNode.location.y < newNode.location.y) return 'down';
-    }
-
-    function arrowShadow(arrowsArray, draw) {
-        if (draw) {
-            for (var i = 0; i < arrowsArray.length; i++) {
-                UICtrl.displayArrow(arrowsArray[i].x, arrowsArray[i].y, arrowsArray[i].dir, 1 / (i + 1));
-            }
-        }
-        else {
-            for (var i = 0; i < arrowsArray.length; i++) {
-                UICtrl.displayArrow(arrowsArray[i].x, arrowsArray[i].y, '', 1);
-            }
-        }
-    }
-
     function displayWay() {
-        var keepDisplay, visitedNode, counter;
-        counter = 0;
+        var keepDisplay, visitedNode, steps, middleSetps;
+        steps = 0;
+        middleSetps = 0;
         keepDisplay = true;
         visitedNode = graph.node['n-' + graph.stop.x + '-' + graph.stop.y]; //END node
 
         while (keepDisplay) {
             visitedNode = graph.node['n-' + visitedNode.parent.x + '-' + visitedNode.parent.y];
-            counter++;
+            steps++;
             if (visitedNode.location.x === graph.start.x && visitedNode.location.y === graph.start.y) {
                 keepDisplay = false;
             }
             else {
                 UICtrl.btnState(visitedNode.location.x, visitedNode.location.y, 5);
             }
+            if (visitedNode.relators) {
+                for (relator of visitedNode.relators) {
+                    UICtrl.btnState(relator[0], relator[1], 7);
+                    middleSetps ++;
+                }
+            }
         }
-        return counter;
+        return [steps, steps+middleSetps];
     }
 
     // DFS algorithm
 
-    function dfsAlgorithm(delay, solveDir, runMode) {
+    function dfsAlgorithm(delay, solveDir, runMode, optimisation) {
         var newNode, newChild, lab, previousNode, counter, wayCounter;
         search = true; // we are still searching
         stop = false;
@@ -465,9 +561,8 @@ var solverController = (function (labCtrl, UICtrl) {
         wayCounter = 0;
         //amout of nodes visited
         lab = labCtrl.returnLab();
-        arrowsArray = [];
         // create new graph
-        graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y);
+        graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y, solveDir, optimisation);
         //clone array:
         graph.matrix = lab.matrix.map(function (i) {
             return i.map(function (j) {
@@ -475,20 +570,13 @@ var solverController = (function (labCtrl, UICtrl) {
             })
         })
         // create first - start node
-        newNode = graph.makeNode(lab.start.x, lab.start.y, lab.start.x, lab.start.y, solveDir);
+        newNode = graph.makeNode(lab.start.x, lab.start.y, lab.start.x, lab.start.y);
 
         execution();
-
-        return {
-            visitedCells: counter,
-            wayCells: wayCounter,
-        };
 
         function execution() {
             if (runMode === 'manual') solveLock = true;
             UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
-            arrowShadow(arrowsArray, false);
-
             newChild = graph.getChild(newNode);
             if (!graph.node.hasOwnProperty('n-' + newChild.x + '-' + newChild.y)) {
                 if (newChild === false) {
@@ -515,12 +603,7 @@ var solverController = (function (labCtrl, UICtrl) {
             if (!stop) {
                 if (delay > 0 || runMode === 'manual') {
                     UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState', true);
-                    arrowsArray.unshift(new ArrowCreate(newNode.location.x, newNode.location.y, findArrow(newNode, previousNode)));
 
-                    if (arrowsArray.length > 4) {
-                        arrowsArray.pop();
-                    }
-                    arrowShadow(arrowsArray, true);
                     if (search) {
                         if (solveLock) pauseWait();
                         else setTimeout(execution, delay);
@@ -546,7 +629,6 @@ var solverController = (function (labCtrl, UICtrl) {
         }
         function finisHIM() {
             UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
-            arrowShadow(arrowsArray, false);
             if (!stop) wayCounter = displayWay();
             appController.btnLock = false;
             UICtrl.setPlayButton('play');
@@ -557,18 +639,18 @@ var solverController = (function (labCtrl, UICtrl) {
 
     // BFS algorithm
 
-    function bfsAlgorithm(delay, solveDir, runMode) {
-        var newNode, newChild, lab, stock, newStock, counter, wayCounter;
+    function bfsAlgorithm(delay, solveDir, runMode, optimisation) {
+        var newNode, newChild, lab, stock, newStock, counter, wayCounter, width, height;
         counter = 0;
         search = true; // we are still searching
         stop = false;
         solveLock = false;
         lab = labCtrl.returnLab();
-        arrowsArray = [];
         stock = [];
         newStock = [];
         // create new graph
-        graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y);
+        // graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y, solveDir, 'default');
+        graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y, solveDir, optimisation);
         //clone array:
         graph.matrix = lab.matrix.map(function (i) {
             return i.map(function (j) {
@@ -576,7 +658,7 @@ var solverController = (function (labCtrl, UICtrl) {
             })
         })
         // create first - start node
-        newNode = graph.makeNode(lab.start.x, lab.start.y, lab.start.x, lab.start.y, solveDir);
+        newNode = graph.makeNode(lab.start.x, lab.start.y, lab.start.x, lab.start.y);
         stock.push(newNode);
         var j = 0;
         var i = 0;
@@ -590,8 +672,8 @@ var solverController = (function (labCtrl, UICtrl) {
                     if (!graph.node.hasOwnProperty('n-' + newChild.x + '-' + newChild.y)) {
                         if (runMode === 'manual') solveLock = true;
                         UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
-                        arrowShadow(arrowsArray, false);
-                        newNode = graph.makeNode(newChild.x, newChild.y, stock[j].location.x, stock[j].location.y, solveDir);
+
+                        newNode = graph.makeNode(newChild.x, newChild.y, stock[j].location.x, stock[j].location.y);
                         if (newNode.location.x === graph.stop.x && newNode.location.y === graph.stop.y) {
                             search = false;
                         }
@@ -599,11 +681,7 @@ var solverController = (function (labCtrl, UICtrl) {
                         counter++;
                         if (delay > 0 || runMode === 'manual') {
                             UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState', true);
-                            arrowsArray.unshift(new ArrowCreate(newNode.location.x, newNode.location.y, newNode.vector));
-                            if (arrowsArray.length > 5) {
-                                arrowsArray.pop();
-                            }
-                            arrowShadow(arrowsArray, true);
+
                             // await timer(delay);
                         }
                     }
@@ -651,7 +729,6 @@ var solverController = (function (labCtrl, UICtrl) {
         }
         function finisHIM() {
             UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
-            arrowShadow(arrowsArray, false);
             if (!stop) wayCounter = displayWay();
             appController.btnLock = false;
             UICtrl.setPlayButton('play');
@@ -668,7 +745,7 @@ var solverController = (function (labCtrl, UICtrl) {
         stop = false;
         lab = labCtrl.returnLab();
         // create new graph
-        graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y);
+        graph = new GraphCreate(lab.start.x, lab.start.y, lab.stop.x, lab.stop.y, solveDir, 'default');
         //clone array:
         graph.matrix = lab.matrix.map(function (i) {
             return i.map(function (j) {
@@ -676,7 +753,7 @@ var solverController = (function (labCtrl, UICtrl) {
             })
         })
         // create first - start node
-        newNode = graph.makeNode(lab.start.x, lab.start.y, lab.start.x, lab.start.y, solveDir);
+        newNode = graph.makeNode(lab.start.x, lab.start.y, lab.start.x, lab.start.y);
 
         while (search) {
             newChild = graph.getChild(newNode);
@@ -720,9 +797,6 @@ var solverController = (function (labCtrl, UICtrl) {
             return solveLock;
         },
         // solveLock
-        arrows: function () {
-            return arrowsArray;
-        },
         stopExecution: function () {
             stop = true;
             search = false;
@@ -738,11 +812,14 @@ var solverController = (function (labCtrl, UICtrl) {
 
 // Comunication with UI and logic
 var appController = (function (labCtrl, UICtrl, solverCtrl) {
-    var labSize, defaultBtnSize, btnSize, btnLock, algorithm, runMode, delay;
+    var labSize, defaultBtnSize, btnSize, btnLock, algorithm, runMode, delay, direction, optimisation, maxSize;
     labSize = 1;
     defaultBtnSize = 24;
+    maxSize = 624;
     algorithm = 'DFS'; //as deafult solving method
+    direction = 'right';
     runMode = 'auto';
+    optimisation = 'default'
     btnSize = defaultBtnSize;
     btnLock = false;
 
@@ -823,33 +900,42 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
         }
     }
 
-    function createLab(width, height, newBtnSize) {
-        if (width === undefined && height === undefined) {
+    function createLab(widthSet, heightSet, newBtnSize) {
+        if (widthSet === undefined && heightSet === undefined) {
             width = parseInt(slider_w.value);
             height = parseInt(slider_h.value);
         }
+        else {
+            width = widthSet;
+            height = heightSet;
+        }
         if (newBtnSize === undefined) {
 
-            if (height < 10) {
-                labSize = 1.5;
-                newBtnSize = labSize * defaultBtnSize;
-            }
-            else if (height <= 20) {
-                labSize = 1.25;
-                newBtnSize = labSize * defaultBtnSize;
-            }
-            else if (height <= 30) {
-                labSize = 1;
-                newBtnSize = labSize * defaultBtnSize;
-            }
-            else if (height <= 40) {
-                labSize = 0.75;
-                newBtnSize = labSize * defaultBtnSize;
-            }
-            else {
-                labSize = 0.5;
-                newBtnSize = labSize * defaultBtnSize;;
-            }
+            // if (height < 10) {
+            //     labSize = 1.5;
+            //     newBtnSize = labSize * defaultBtnSize;
+            // }
+            // else if (height <= 20) {
+            //     labSize = 1.25;
+            //     newBtnSize = labSize * defaultBtnSize;
+            // }
+            // else if (height <= 30) {
+            //     labSize = 1;
+            //     newBtnSize = labSize * defaultBtnSize;
+            // }
+            // else if (height <= 40) {
+            //     labSize = 0.75;
+            //     newBtnSize = labSize * defaultBtnSize;
+            // }
+            // else {
+            //     labSize = 0.5;
+            //     newBtnSize = labSize * defaultBtnSize;;
+            // }
+
+            newBtnSize = Math.round(100*maxSize / width)/100;
+            console.log(newBtnSize);
+            labSize = (Math.round(10*newBtnSize / defaultBtnSize))/10;
+            console.log(labSize);
             btnSize = newBtnSize;
             labCtrl.generateLab(width, height);
         }
@@ -860,16 +946,21 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
 
     function resizeLab(id) {
         if (id === 'size-down' && labSize > 0.5) {
-            labSize -= 0.25;
+            labSize -= 0.1;
             btnSize = labSize * defaultBtnSize;
-            console.log('clicked minus');
-        } else if (id === 'size-up' && labSize < 1.5) {
-            labSize += 0.25;
+        } else if (id === 'size-up' && width*(labSize+0.1)*defaultBtnSize <= maxSize) {
+            labSize += 0.1;
             btnSize = labSize * defaultBtnSize;
-            console.log('clicked plus');
         }
+        else if(id === 'size-up' && width*(labSize+0.1)*defaultBtnSize > maxSize) {
+            btnSize =  Math.round(100*maxSize / width)/100;
+            labSize = (Math.round(10*btnSize / defaultBtnSize))/10;
+        }
+        console.log(btnSize);
+        console.log(labSize);
 
         createLab(labCtrl.returnLab().width, labCtrl.returnLab().height, btnSize);
+        console.log(document.getElementById('matrix-place').style.width);
         clearLab();
     }
 
@@ -960,6 +1051,25 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
                 }
             });
 
+            document.getElementById('solve-optimalisation').addEventListener('click', function (event) {
+                if (event.target.value) {
+                    optimisation = event.target.value;
+                }
+            });
+
+            document.getElementById('solve-dir').addEventListener('click', function (event) {
+                if (appController.btnLock === false) {
+                    if (event.target.value) {
+                        direction = event.target.value;
+                        UICtrl.setDirButton(event.target);
+                    }
+                    else if (event.target.parentNode.value) {
+                        direction = event.target.parentNode.value;
+                        UICtrl.setDirButton(event.target.parentNode);
+                    }
+                }
+            });
+
             document.getElementById('mode-select').addEventListener('click', function (event) {
                 if (event.target.value) {
                     runMode = event.target.value;
@@ -1005,10 +1115,11 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
                     if (labCtrl.returnLab().start.x >= 0 && labCtrl.returnLab().stop.x >= 0) {
                         appController.btnLock = true; // we set lock here and finished function unlock it
                         clearLab();
-                        var direction = document.getElementById('solve-direction').value;
                         UICtrl.setPlayButton('pause');
-                        if (algorithm === 'DFS') solverCtrl.dfsStart(delay, direction, runMode);
-                        else if (algorithm === 'BFS') solverCtrl.bfsStart(delay, direction, runMode);
+                        console.log(algorithm, direction, runMode, optimisation);
+                        if (algorithm === 'DFS') solverCtrl.dfsStart(delay, direction, runMode, optimisation);
+                        else if (algorithm === 'A*') solverCtrl.dfsStart(delay, 'A*', runMode, optimisation);
+                        else if (algorithm === 'BFS') solverCtrl.bfsStart(delay, direction, runMode, optimisation);
 
                     }
                     else {

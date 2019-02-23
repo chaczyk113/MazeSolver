@@ -21,6 +21,7 @@
 @visitedColor: 	#778899;
 @actualColor: #3f6184;
 @wayColor: #3f6184;
+@semiWayColor: #6187ad;
 
 /* General */
 *{
@@ -35,7 +36,7 @@ body{
     font-family: 'Roboto Condensed', sans-serif;
     font-weight: 300;
     background-color: #cad4dd;
-    
+
 }
 
 .page-wrapper {
@@ -44,10 +45,13 @@ body{
 }
 
 .bar-wrapper {
+    // position:sticky;
+    top:0;
     width: 100%;
     background-color: #3f6184;
     padding: 5px 0;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
+    z-index: 1;
 }
 
 h1{
@@ -59,10 +63,11 @@ h1{
 
 /* GUI */
 .inputs-bar {
+
     display: flex;
     justify-content: space-between;
     flex-wrap: nowrap;
-    
+
     background-color: #3f6184;
     color: #f6f7f9;
     // align-content: space-between;
@@ -80,7 +85,7 @@ h1{
     -webkit-transition: .2s;
     transition: opacity .2s;
   }
-  
+
   .slider-wrapper:hover .slider{
     background-color: #778899;
   }
@@ -88,7 +93,7 @@ h1{
   .slider-wrapper:hover .slider::-webkit-slider-thumb {
     background: #323a45;
   }
-  
+
   .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -97,7 +102,7 @@ h1{
     background: #f6f7f9;
     cursor: pointer;
   }
-  
+
   .slider::-moz-range-thumb {
     width: 15px;
     height: 15px;
@@ -113,12 +118,13 @@ h1{
     flex-wrap: wrap;
     // border: 1px solid black;
 
+
 }
 
 .input-header {
     width: 100%;
     h2 {
-        
+
         text-align: center;
         margin: 3px 0;
     }
@@ -143,6 +149,7 @@ h1{
         border: none;
         border-radius: 5px;
         color: #f6f7f9;
+
     }
     button:hover {
         background-color:  #778899;
@@ -159,6 +166,7 @@ h1{
 
 .select-group{
     // margin: 0 auto;
+
     p{
         text-align: center;
         margin: 3px auto;
@@ -189,9 +197,9 @@ h1{
 .extra-btns{
     display: flex;
     flex-direction: column;
-    
+
     button {
-        
+
         width: 25px;
         height: 25%;
         i {
@@ -223,13 +231,91 @@ h1{
     height: 30px;
 }
 
+
+#solve-dir{
+    box-sizing: content-box;
+    width: 129px;
+    display: flex;
+    // flex-wrap: wrap;
+    align-items: center;
+    button{
+      width: 25px;
+      height: 25px;
+      align-self: unset;
+      .far{
+        text-align: center;
+        // margin-right: 5px;
+        font-size: 15px;
+      }
+    }
+
+      .basic-directions{
+        display: flex;
+        // flex-wrap: wrap;
+        align-items: center;
+        }
+        .middle-dir{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .middle-dir div{
+          width: 25px;
+          height: 25px;
+          .far{
+            text-align: center;
+            // margin-right: 5px;
+            font-size: 20px;
+          }
+        }
+  }
+
+
 /* Maze par */
+
+#show-btn-id {
+    text-align: center;
+    font-size: 20px;
+    // font-weight: bold;
+    height: 20px;
+    margin-bottom: 8px;
+}
 
 #matrix-wrapper{
     width: 100%;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
 
+}
+
+.side-description {
+    width: 280px;
+    h2 {
+        text-align: center;
+        margin-bottom: 3px;
+    }
+    .legend-list{
+        list-style-type: none;
+    }
+    .legend{
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.rules {
+    ol li{
+        margin-bottom: 3px;
+        p {
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+        ul li {
+            margin-left: 10px;
+            margin-bottom: 0;
+        }
+    }
 }
 
 #matrix-place {
@@ -293,4 +379,7 @@ h1{
 
 .wayState {
     background-color: @wayColor;
+}
+.semiWayState {
+    background-color: @semiWayColor;
 }

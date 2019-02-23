@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>MAZE Solver</title>
+    <title>Labirynth</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="lab-style.css" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" />
@@ -34,93 +34,156 @@
                             <div class="select-group">
                                 <p id="height-val">height</p>
                                 <div class="slider-wrapper">
-                                <input type="range" min="5" max="50" value="20" step="5" class="slider" id="height">
+                                    <input type="range" min="5" max="50" value="20" step="5" class="slider" id="height">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btns-group">
+                            <button id='new-board'><i class="fas fa-file"></i> Empty board</button>
+                            <button id='random-lab'><i class="fas fa-dice"></i>Random maze</button>
+                            <div class="extra-btns">
+                                <button id='size-down' title="Zoom out maze"><i class="fas fa-minus"></i></button>
+                                <button id='size-up' title="Zoom in maze"><i class="fas fa-plus"></i></button>
+                                <button id='save-lab' title="Save current maze"><i class="far fa-save"></i></i></button>
+                                <button id='restore-lab' title="Restore saved maze"><i
+                                        class="fas fa-download"></i></button>
                             </div>
                         </div>
                     </div>
-                    <div class="btns-group">
-                        <button id='new-board'><i class="fas fa-file"></i> Empty board</button>
-                        <button id='random-lab'><i class="fas fa-dice"></i>Random maze</button>
-                        <div class="extra-btns">
-                            <button id='size-down'><i class="fas fa-minus"></i></button>
-                            <button id='size-up'><i class="fas fa-plus"></i></button>
-                            <button id='save-lab'><i class="far fa-save"></i></i></button>
-                            <button id='restore-lab'><i class="fas fa-download"></i></button>
-                        </div>
-                    </div>
                 </div>
-            </div>
 
-            <div class="inputs-group col-2">
-                <div class="input-header">
-                    <h2>Configure Algorithm</h2>
-                </div>
-                <div class="inputs">
-                    <div class="select-group">
-                        <p>Select algorithm</p>
-                        <div id='solve-algorithm' class='radio-btns'>
-                            <input type="radio" name="algorithm" value="DFS" checked>DFS</br>
-                            <input type="radio" name="algorithm" value="BFS">BFS</br>
-                            <input type="radio" name="algorithm" value="">other...</br>
-                        </div>
+                <div class="inputs-group col-2">
+                    <div class="input-header">
+                        <h2>Configure Algorithm</h2>
                     </div>
-                    <div class="select-group">
-                        <p>Solve direction</p>
-                        <select id='solve-direction'>
+                    <div class="inputs">
+                        <div class="select-group">
+                            <p>Select algorithm</p>
+                            <div id='solve-algorithm' class='radio-btns'>
+                                <input type="radio" name="algorithm" value="DFS" checked>DFS</br>
+                                <input type="radio" name="algorithm" value="BFS">BFS</br>
+                                <input type="radio" name="algorithm" value="A*">A*</br>
+                            </div>
+                        </div>
+                        <div class="select-group">
+                            <p>Graph optimisation</p>
+                            <div id='solve-optimalisation' class='radio-btns'>
+                                <input type="radio" name="optimalisation" value="default" checked>OFF</br>
+                                <input type="radio" name="optimalisation" value="optimalised">ON</br>
+                            </div>
+                        </div>
+                        <div class="select-group">
+                            <p>Solve direction</p>
+                            <div id="solve-dir">
+                                <button id='LH-btn' value="leftHand" title="Follow left hand rule"
+                                    style="transform: scaleX(-1);"><i class="far fa-hand-paper"></i></button>
+                                <div class='basic-directions'>
+                                    <button class="dir-btn" id='W-btn' title="West (left) direction first"
+                                        value="left">W</button>
+
+                                    <div class="middle-dir">
+                                        <button id='N-btn' value="up" title="North (up) direction first">N</button>
+                                        <div id='compass'><i class="far fa-compass"></i></div>
+                                        <button id='S-btn' value="down" title="South (down) direction first">S</button>
+                                    </div>
+
+                                    <button id='E-btn' class='button-pressed' value="right"
+                                        title="East (right) direction first">E</button>
+                                </div>
+                                <button id='RH-btn' value="rightHand" title="Follow right hand rule"><i
+                                        class="far fa-hand-paper"></i></button>
+
+                            </div>
+                            <!-- <select id='solve-direction'>
                             <option value="right">To right</option>
                             <option value="down">To down</option>
                             <option value="left">To left</option>
                             <option value="up">To up</option>
                             <option value="rightHand">Right hand</option>
                             <option value="leftHand">Left hand</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="inputs-group col-3">
-                <div class="input-header">
-                    <h2>Display Options</h2>
-                </div>
-                <div class="inputs right">
-                    <div class="select-group mode">
-                        <p>Mode</p>
-                        <div id='mode-select' class='radio-btns'>
-                            <input type="radio" name="mode" value="auto" checked>auto</br>
-                            <input type="radio" name="mode" value="manual">manual</br>
+                            <option value="A*">A*</option>
+                        </select> -->
                         </div>
                     </div>
-                    <div class="select-group">
-                        <p id="dealy-val">Delay 10 ms</p>
-                        <div class="slider-wrapper">
-                        <input type="range" min="0" max="5" value="1" step="1" class="slider" id="preview-speed'">
-                    </div>
-                    </div>
-                    <div class="btns-group play-btns">
-                        <button id='run-algorithm'><i class="far fa-play-circle"></i>Run algorithm</button>
-                        <button id='stop-execution'><i class="far fa-stop-circle"></i>Stop</button>
-                        <button id='clear-solution'><i class="fas fa-eraser"></i> Clear solution</button>
-                    </div>
+                </div>
 
+                <div class="inputs-group col-3">
+                    <div class="input-header">
+                        <h2>Display Options</h2>
+                    </div>
+                    <div class="inputs right">
+                        <div class="select-group mode">
+                            <p>Mode</p>
+                            <div id='mode-select' class='radio-btns'>
+                                <input type="radio" name="mode" value="auto" checked>auto</br>
+                                <input type="radio" name="mode" value="manual">manual</br>
+                            </div>
+                        </div>
+                        <div class="select-group">
+                            <p id="dealy-val">Delay 10 ms</p>
+                            <div class="slider-wrapper">
+                                <input type="range" min="0" max="5" value="1" step="1" class="slider"
+                                    id="preview-speed'">
+                            </div>
+                        </div>
+                        <div class="btns-group play-btns">
+                            <button id='run-algorithm'><i class="far fa-play-circle"></i>Run algorithm</button>
+                            <button id='stop-execution'><i class="far fa-stop-circle"></i>Stop</button>
+                            <button id='clear-solution'><i class="fas fa-eraser"></i> Clear solution</button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
     <div class='page-wrapper'>
-        <div id="matrix-wrapper">
-            <div id='matrix-place'></div>
-        </div>
         <p id='show-btn-id'>x: 0 y: 0</p>
+        <div id="matrix-wrapper">
+            <div class="side-description rules">
+                <h2>Basic rules:</h2>
+                <ol>
+                    <li>
+                        <p>Create your maze</p>
+                        <ul>
+                            <li>Click each field to set it state
+                                <ul class="legend-list">
+                                    <li><div class="legend wallState"></div> wall</li>
+                                    <li><div class="legend pathState"></div> path</li>
+                                    <li><div class="legend startState"></div> start</li>
+                                    <li><div class="legend stopState"></div> stop</li>
+                                </ul>
+                            </li>
+                            <li>there can be only one start and stop</li>
+                            <li>We can't make a path's on labyrinth's border </li>
+                            <li>Can't set start/stop on corners</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <p>Configure algorithm</p>
+                        <ul>
+                            <li>Select algorithm</li>
+                            <li>Turn on / off graph optimisation - responsible for selecting only significant fields
+                            </li>
+                            <li>Select solve direction - the way of selecting next field</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <p>Run algorithm</p>
+                        <ul>
+                            <li>Run with auto mode and selected delay between steps</li>
+                            <li>Run with manual mode and click on the maze to take next step</li>
+                            <li>You can't edit maze and algorithm while runing - stop it and clear solution</li>
+                        </ul>
+                    </li>
+                </ol>
 
-        <p>Basic rules:</p>
-        <ul>
-            <li>Click each field to set it state</li>
-            <li>there can be only one start (green) and stop(red)</li>
-            <li>We can't make a path's on labyrinth's border </li>
-            <li>Can't set start/stop on corners</li>
-        </ul>
-    </div>
+            </div>
+            <div id='matrix-place'></div>
+            <div class="side-description">
+                <h2>Algorith:</h2>
+            </div>
+        </div>
     </div>
 
     <script src="lab-script.js"></script>
