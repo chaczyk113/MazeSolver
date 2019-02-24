@@ -31,7 +31,7 @@ h1 {
 }
 .dev-info {
   margin: 0 auto;
-  margin-bottom: 20px;
+  margin: 30px 0 10px 0;
   text-align: center;
 }
 .dev-info h2 {
@@ -219,6 +219,9 @@ footer p {
   text-align: center;
   margin-bottom: 3px;
 }
+.side-description h3 {
+  margin: 5px 0;
+}
 .side-description .legend-list {
   list-style-type: none;
 }
@@ -237,6 +240,10 @@ footer p {
 }
 .side-description .result .last {
   font-size: 20px;
+}
+#BFS-des,
+#Astar-des {
+  display: none;
 }
 .algorithm {
   margin-left: 10px;

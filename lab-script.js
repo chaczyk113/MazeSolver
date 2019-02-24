@@ -542,7 +542,7 @@ var solverController = (function (labCtrl, UICtrl) {
         middleSetps = 0;
         keepDisplay = true;
         visitedNode = graph.node['n-' + graph.stop.x + '-' + graph.stop.y]; //END node
-
+        console.log(algorithm.split(" ")[0] );
         while (keepDisplay) {
             visitedNode = graph.node['n-' + visitedNode.parent.x + '-' + visitedNode.parent.y];
             steps++;
@@ -552,7 +552,7 @@ var solverController = (function (labCtrl, UICtrl) {
             else {
                 UICtrl.btnState(visitedNode.location.x, visitedNode.location.y, 5);
             }
-            if (visitedNode.relators) {
+            if (algorithm.split(" ")[0] != "BFS" && visitedNode.relators) {
                 for (relator of visitedNode.relators) {
                     UICtrl.btnState(relator[0], relator[1], 7);
                     middleSetps++;
@@ -616,7 +616,7 @@ var solverController = (function (labCtrl, UICtrl) {
                         search = false;
                         stop = true; //means we should stop right NOW!!
                         appController.btnLock = false;
-                        alert('Bitch! There is no way out!!')
+                        alert('Watch out! There is no way out!!')
                     }
                     previousNode = newNode;
                     newNode = graph.node['n-' + newNode.parent.x + '-' + newNode.parent.y]; //coming back
@@ -723,7 +723,7 @@ var solverController = (function (labCtrl, UICtrl) {
                 search = false;
                 stop = true; //means we should stop right NOW!!
                 appController.btnLock = false;
-                alert('Bitch! There is no way out!!')
+                alert('Watch out! There is no way out!!')
             }
             if (!stop) {
                 if (delay > 0) {
@@ -984,6 +984,32 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
         UICtrl.btnState(x, y, fieldState);
     }
 
+    function displayInfo(algorithm) {
+        var DFSinfo, BFSinfo, AstarInfo;
+        DFSinfo = document.getElementById('DFS-des');
+        BFSinfo = document.getElementById('BFS-des');
+        AstarInfo = document.getElementById('Astar-des');
+
+        DFSinfo.style.display = 'none';
+        BFSinfo.style.display = 'none';
+        AstarInfo.style.display = 'none';
+
+        switch (algorithm) {
+            case "DFS": {
+                DFSinfo.style.display = 'block';
+                break;
+            }
+            case "BFS": {
+                BFSinfo.style.display = 'block';
+                break;
+            }
+            case "A*": {
+                AstarInfo.style.display = 'block';
+                break;
+            }
+        }
+    }
+
     return {
         addListeners: function () {
             document.body.addEventListener('mousedown', function () {
@@ -1050,6 +1076,7 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
             document.getElementById('solve-algorithm').addEventListener('click', function (event) {
                 if (event.target.value) {
                     algorithm = event.target.value;
+                    displayInfo(algorithm);
                 }
             });
 
