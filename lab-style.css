@@ -27,6 +27,20 @@ h1 {
   color: #323a45;
   text-align: center;
   font-family: 'Orbitron', sans-serif;
+  margin: 15px;
+}
+.dev-info {
+  margin: 0 auto;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.dev-info h2 {
+  color: #e9bf03;
+}
+footer p {
+  font-size: 12px;
+  text-align: right;
+  margin: 10px;
 }
 /* GUI */
 .inputs-bar {

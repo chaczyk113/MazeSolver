@@ -16,6 +16,10 @@
 <body>
     <div class='page-wrapper'>
         <h1 id="intro"><span>MAZE</span> Solver</h1>
+        <div class="dev-info">
+            <h2><i class="fas fa-exclamation-triangle"></i> Page under construction</h2>
+            <p>Be aware this is beta version of educational, personal project</p>
+        </div>
     </div>
     <div class="bar-wrapper">
         <div class='page-wrapper'>
@@ -28,13 +32,14 @@
                         <div class="select-group">
                             <p id="width-val">width</p>
                             <div class="slider-wrapper">
-                                <input type="range" min="5" max="50" value="20" step="5" class="slider" id="width">
+                                <input type="range" min="15" max="75" value="20" step="10" class="slider" id="width">
                             </div>
 
                             <div class="select-group">
                                 <p id="height-val">height</p>
                                 <div class="slider-wrapper">
-                                    <input type="range" min="5" max="50" value="20" step="5" class="slider" id="height">
+                                    <input type="range" min="15" max="75" value="20" step="10" class="slider"
+                                        id="height">
                                 </div>
                             </div>
                         </div>
@@ -67,9 +72,9 @@
                         </div>
                         <div class="select-group">
                             <p>Graph optimisation</p>
-                            <div id='solve-optimalisation' class='radio-btns'>
+                            <div id='solve-optimisation' class='radio-btns'>
                                 <input type="radio" name="optimalisation" value="default" checked>OFF</br>
-                                <input type="radio" name="optimalisation" value="optimalised">ON</br>
+                                <input type="radio" name="optimalisation" value="optimised">ON</br>
                             </div>
                         </div>
                         <div class="select-group">
@@ -94,15 +99,6 @@
                                         class="far fa-hand-paper"></i></button>
 
                             </div>
-                            <!-- <select id='solve-direction'>
-                            <option value="right">To right</option>
-                            <option value="down">To down</option>
-                            <option value="left">To left</option>
-                            <option value="up">To up</option>
-                            <option value="rightHand">Right hand</option>
-                            <option value="leftHand">Left hand</option>
-                            <option value="A*">A*</option>
-                        </select> -->
                         </div>
                     </div>
                 </div>
@@ -148,10 +144,18 @@
                         <ul>
                             <li>Click each field to set it state
                                 <ul class="legend-list">
-                                    <li><div class="legend wallState"></div> wall</li>
-                                    <li><div class="legend pathState"></div> path</li>
-                                    <li><div class="legend startState"></div> start</li>
-                                    <li><div class="legend stopState"></div> stop</li>
+                                    <li>
+                                        <div class="legend wallState"></div> wall
+                                    </li>
+                                    <li>
+                                        <div class="legend pathState"></div> path
+                                    </li>
+                                    <li>
+                                        <div class="legend startState"></div> start
+                                    </li>
+                                    <li>
+                                        <div class="legend stopState"></div> stop
+                                    </li>
                                 </ul>
                             </li>
                             <li>there can be only one start and stop</li>
@@ -180,13 +184,40 @@
 
             </div>
             <div id='matrix-place'></div>
-            <div class="side-description">
-                <h2>Algorith:</h2>
+            <div class="side-description algorithm">
+                <h2>Algorithm:</h2>
+                <div class="algorithm-description" id="DFS-des">
+                    <h3>BFS</h3>
+                    <p>Blablaabla</p>
+                </div>
+                <div class="algorithm-description" id="BFS-des">
+
+                </div>
+                <div class="algorithm-description" id="A*-des">
+
+                    <div class="result">
+                        <div class="last">
+                            <h2>Last result</h2>
+                            <p>Algorithm: <span id="algorithm-last"></span></p>
+                            <p>Visited cells: <span id="visited-last"></span></p>
+                            <p>Path cells: <span id="path-last"></span></p>
+                        </div>
+                        <div class="orevious">
+                            <h2>Previous result</h2>
+                            <p>Algorithm: <span id="algorithm-previous"></span></p>
+                            <p>Visited cells: <span id="visited-previous"></span></p>
+                            <p>Path cells: <span id="path-previous"></span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-    <script src="lab-script.js"></script>
+        <footer>
+            <div class='page-wrapper'>
+                <p>Made by: Jakub Zachacz <a href="mailto:jakzacha@gmail.com">jakzacha@gmail.com</a></p>
+            </div>
+        </footer>
+        <script src="lab-script.js"></script>
 </body>
 
 </html>
