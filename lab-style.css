@@ -198,7 +198,8 @@ h1 {
   justify-content: space-between;
 }
 .side-description {
-  width: 280px;
+  position: relative;
+  width: 270px;
 }
 .side-description h2 {
   text-align: center;
@@ -211,6 +212,20 @@ h1 {
   display: inline-block;
   width: 12px;
   height: 12px;
+}
+.side-description .result {
+  position: absolute;
+  width: 100%;
+  top: 300px;
+}
+.side-description .result h2 {
+  margin: 12px 0;
+}
+.side-description .result .last {
+  font-size: 20px;
+}
+.algorithm {
+  margin-left: 10px;
 }
 .rules ol li {
   margin-bottom: 3px;

@@ -264,20 +264,32 @@ var UIController = (function () {
             console.log(pressedBtn);
             console.log(dirButtons);
             dirButtons = Array.from(dirButtons);
-            for (button of dirButtons){
+            for (button of dirButtons) {
                 button.classList.remove('button-pressed');
             }
             pressedBtn.classList.add('button-pressed');
+        },
+
+        updateResult: function (result) {
+            document.getElementById("algorithm-last").innerText = result.algorithm;
+            document.getElementById("visited-last").innerText = result.visited;
+            document.getElementById("path-last").innerText = result.path[0];
+            document.getElementById("algorithm-previous").innerText = result.previousAlgorithm;
+            document.getElementById("visited-previous").innerText = result.previousVisited;
+            document.getElementById("path-previous").innerText = result.previousPath[0];
         }
     }
 
 })();
 
 var solverController = (function (labCtrl, UICtrl) {
-    var graph, solveLock, stop, search;
+    var graph, solveLock, stop, search, counter, wayCounter, previousVisited, previousPath, algorithm, previousAlgorithm;
 
     solveLock = false;
-
+    previousPath = [0, 0];
+    previousVisited = 0;
+    algorithm = "";
+    previousAlgorithm = "";
     // graph's node constructor
     var NodeCreate = function (lX, lY, pX, pY) {
         this.location = {
@@ -511,7 +523,7 @@ var solverController = (function (labCtrl, UICtrl) {
 
                 this.matrix[nY][nX] = 4; // 4 means visited
 
-                if (this.solveMode === 'optimalised') {
+                if (this.solveMode === 'optimised') {
                     this.node['n-' + nX + '-' + nY].betterFillChildren(this.matrix, this.solveDir, this.stop);
                 } else {
                     this.node['n-' + nX + '-' + nY].fillChildren(this.matrix, this.solveDir, this.stop);
@@ -543,22 +555,41 @@ var solverController = (function (labCtrl, UICtrl) {
             if (visitedNode.relators) {
                 for (relator of visitedNode.relators) {
                     UICtrl.btnState(relator[0], relator[1], 7);
-                    middleSetps ++;
+                    middleSetps++;
                 }
             }
         }
-        return [steps, steps+middleSetps];
+        return [steps, steps + middleSetps];
     }
 
+    function finisHIM(newNode) {
+        UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
+        if (!stop) wayCounter = displayWay();
+        appController.btnLock = false;
+        UICtrl.setPlayButton('play');
+        var result = {
+            algorithm: algorithm,
+            visited: counter,
+            path: wayCounter,
+            previousAlgorithm: previousAlgorithm,
+            previousVisited: previousVisited,
+            previousPath: previousPath
+        }
+        UICtrl.updateResult(result);
+        previousPath = wayCounter;
+        previousVisited = counter;
+        previousAlgorithm = algorithm;
+    }
     // DFS algorithm
 
-    function dfsAlgorithm(delay, solveDir, runMode, optimisation) {
-        var newNode, newChild, lab, previousNode, counter, wayCounter;
+    function dfsAlgorithm(delay, solveDir, runMode, optimisation, setAlgorithm) {
+        var newNode, newChild, lab, previousNode;
         search = true; // we are still searching
         stop = false;
         solveLock = false;
         counter = 0;
         wayCounter = 0;
+        algorithm = setAlgorithm + ' ' + optimisation + ' ' + solveDir;
         //amout of nodes visited
         lab = labCtrl.returnLab();
         // create new graph
@@ -609,13 +640,13 @@ var solverController = (function (labCtrl, UICtrl) {
                         else setTimeout(execution, delay);
                     }
                     else {
-                        finisHIM();
+                        finisHIM(newNode);
                     }
                 }
-                else { search ? execution() : finisHIM(); }
+                else { search ? execution() : finisHIM(newNode); }
             }
             else {
-                finisHIM();
+                finisHIM(newNode);
             }
         }
         function pauseWait() {
@@ -624,27 +655,20 @@ var solverController = (function (labCtrl, UICtrl) {
                 else setTimeout(execution, delay);
             }
             else {
-                finisHIM();
+                finisHIM(newNode);
             }
-        }
-        function finisHIM() {
-            UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
-            if (!stop) wayCounter = displayWay();
-            appController.btnLock = false;
-            UICtrl.setPlayButton('play');
-            console.log(counter);
-            console.log(wayCounter);
         }
     }
 
     // BFS algorithm
 
-    function bfsAlgorithm(delay, solveDir, runMode, optimisation) {
-        var newNode, newChild, lab, stock, newStock, counter, wayCounter, width, height;
+    function bfsAlgorithm(delay, solveDir, runMode, optimisation, setAlgorithm) {
+        var newNode, newChild, lab, stock, newStock;
         counter = 0;
         search = true; // we are still searching
         stop = false;
         solveLock = false;
+        algorithm = setAlgorithm + ' ' + optimisation + ' ' + solveDir;
         lab = labCtrl.returnLab();
         stock = [];
         newStock = [];
@@ -708,13 +732,13 @@ var solverController = (function (labCtrl, UICtrl) {
                         else setTimeout(execution, delay);
                     }
                     else {
-                        finisHIM();
+                        finisHIM(newNode);
                     }
                 }
-                else search ? execution() : finisHIM();
+                else search ? execution() : finisHIM(newNode);
             }
             else {
-                finisHIM();
+                finisHIM(newNode);
             }
 
         }
@@ -724,16 +748,8 @@ var solverController = (function (labCtrl, UICtrl) {
                 else setTimeout(execution, delay);
             }
             else {
-                finisHIM();
+                finisHIM(newNode);
             }
-        }
-        function finisHIM() {
-            UICtrl.toggleState(newNode.location.x, newNode.location.y, 'actualState');
-            if (!stop) wayCounter = displayWay();
-            appController.btnLock = false;
-            UICtrl.setPlayButton('play');
-            console.log(counter);
-            console.log(wayCounter);
         }
     }
 
@@ -859,6 +875,13 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
         createLab(slider_w.value, slider_h.value);
         labCtrl.returnLab().matrixRandomize();
         clearLab();
+        var result = {
+            visited: 0,
+            path: [0, 0],
+            previousVisited: 0,
+            previousPath: [0, 0]
+        }
+        UICtrl.updateResult(result);
     };
 
     function delayCalcuclate(val) {
@@ -911,30 +934,9 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
         }
         if (newBtnSize === undefined) {
 
-            // if (height < 10) {
-            //     labSize = 1.5;
-            //     newBtnSize = labSize * defaultBtnSize;
-            // }
-            // else if (height <= 20) {
-            //     labSize = 1.25;
-            //     newBtnSize = labSize * defaultBtnSize;
-            // }
-            // else if (height <= 30) {
-            //     labSize = 1;
-            //     newBtnSize = labSize * defaultBtnSize;
-            // }
-            // else if (height <= 40) {
-            //     labSize = 0.75;
-            //     newBtnSize = labSize * defaultBtnSize;
-            // }
-            // else {
-            //     labSize = 0.5;
-            //     newBtnSize = labSize * defaultBtnSize;;
-            // }
-
-            newBtnSize = Math.round(100*maxSize / width)/100;
+            newBtnSize = Math.round(100 * maxSize / width) / 100;
             console.log(newBtnSize);
-            labSize = (Math.round(10*newBtnSize / defaultBtnSize))/10;
+            labSize = (Math.round(10 * newBtnSize / defaultBtnSize)) / 10;
             console.log(labSize);
             btnSize = newBtnSize;
             labCtrl.generateLab(width, height);
@@ -948,13 +950,13 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
         if (id === 'size-down' && labSize > 0.5) {
             labSize -= 0.1;
             btnSize = labSize * defaultBtnSize;
-        } else if (id === 'size-up' && width*(labSize+0.1)*defaultBtnSize <= maxSize) {
+        } else if (id === 'size-up' && width * (labSize + 0.1) * defaultBtnSize <= maxSize) {
             labSize += 0.1;
             btnSize = labSize * defaultBtnSize;
         }
-        else if(id === 'size-up' && width*(labSize+0.1)*defaultBtnSize > maxSize) {
-            btnSize =  Math.round(100*maxSize / width)/100;
-            labSize = (Math.round(10*btnSize / defaultBtnSize))/10;
+        else if (id === 'size-up' && width * (labSize + 0.1) * defaultBtnSize > maxSize) {
+            btnSize = Math.round(100 * maxSize / width) / 100;
+            labSize = (Math.round(10 * btnSize / defaultBtnSize)) / 10;
         }
         console.log(btnSize);
         console.log(labSize);
@@ -1051,7 +1053,7 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
                 }
             });
 
-            document.getElementById('solve-optimalisation').addEventListener('click', function (event) {
+            document.getElementById('solve-optimisation').addEventListener('click', function (event) {
                 if (event.target.value) {
                     optimisation = event.target.value;
                 }
@@ -1117,9 +1119,9 @@ var appController = (function (labCtrl, UICtrl, solverCtrl) {
                         clearLab();
                         UICtrl.setPlayButton('pause');
                         console.log(algorithm, direction, runMode, optimisation);
-                        if (algorithm === 'DFS') solverCtrl.dfsStart(delay, direction, runMode, optimisation);
-                        else if (algorithm === 'A*') solverCtrl.dfsStart(delay, 'A*', runMode, optimisation);
-                        else if (algorithm === 'BFS') solverCtrl.bfsStart(delay, direction, runMode, optimisation);
+                        if (algorithm === 'DFS') solverCtrl.dfsStart(delay, direction, runMode, optimisation, "DFS");
+                        else if (algorithm === 'A*') solverCtrl.dfsStart(delay, 'A*', runMode, optimisation, "A*");
+                        else if (algorithm === 'BFS') solverCtrl.bfsStart(delay, direction, runMode, optimisation, "BFS");
 
                     }
                     else {
